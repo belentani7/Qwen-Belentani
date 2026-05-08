@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BELENTANI | The Unheard Prophet</title>
+    <meta name="description" content="Belentani - Cassandra's Legacy. The vision that cannot be unseen.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;800&display=swap" rel="stylesheet">
+    
+    <!-- Three.js for 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            --void: #000000;
+            --blood: #8B0000;
+            --neon-red: #FF003C;
+            --electric-blue: #00F0FF;
+            --prophetic-gold: #FFD700;
+            --fracture: rgba(255, 0, 60, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--void);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor - The Seer's Eye */
+        #cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--neon-red);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s;
+        }
+
+        #cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--electric-blue);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* Glitch Effect Core */
+        .glitch {
+            position: relative;
+            animation: glitch-skew 4s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+            color: var(--neon-red);
+            z-index: -1;
+        }
+
+        .glitch::after {
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+            color: var(--electric-blue);
+            z-index: -2;
+        }
+
+        @keyframes glitch-anim-1 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(5px, -5px); }
+            40% { transform: translate(-5px, 5px); }
+            60% { transform: translate(5px, 5px); }
+            80% { transform: translate(-5px, -5px); }
+        }
+
+        @keyframes glitch-skew {
+            0%, 100% { transform: skew(0deg); }
+            10% { transform: skew(-2deg); }
+            20% { transform: skew(2deg); }
+            30% { transform: skew(0deg); }
+        }
+
+        /* Hero Section - The Vision */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .prophet-name {
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+            margin-bottom: 1rem;
+            text-shadow: 
+                0 0 20px var(--neon-red),
+                0 0 40px var(--neon-red),
+                0 0 80px var(--blood);
+            animation: text-flicker 3s infinite;
+        }
+
+        @keyframes text-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+            52% { opacity: 0.3; }
+            54% { opacity: 1; }
+        }
+
+        .cassandra-tagline {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.9rem, 2vw, 1.3rem);
+            color: var(--electric-blue);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 2s 1s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+        }
+
+        .vision-text {
+            font-size: clamp(1rem, 1.5vw, 1.5rem);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+            padding: 2rem;
+            border-left: 3px solid var(--neon-red);
+            background: linear-gradient(90deg, rgba(139,0,0,0.2) 0%, transparent 100%);
+        }
+
+        .vision-text::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            font-size: 6rem;
+            color: var(--neon-red);
+            opacity: 0.3;
+            font-family: serif;
+        }
+
+        /* Fracture Lines */
+        .fracture {
+            position: absolute;
+            background: linear-gradient(180deg, transparent, var(--neon-red), transparent);
+            width: 1px;
+            height: 100vh;
+            opacity: 0.3;
+            animation: fracture-fall 10s infinite;
+        }
+
+        @keyframes fracture-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Sections */
+        .section {
+            padding: 10rem 2rem;
+            position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 4rem);
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-red), transparent);
+        }
+
+        /* The Unheard - Cassandra Section */
+        .cassandra-section {
+            background: linear-gradient(180deg, var(--void) 0%, #0a0000 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cassandra-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 0, 60, 0.03) 2px,
+                rgba(255, 0, 60, 0.03) 4px
+            );
+            pointer-events: none;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        .dual-reality {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .dual-reality {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reality-panel {
+            padding: 3rem;
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .reality-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 60, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .reality-panel:hover::before {
+            left: 100%;
+        }
+
+        .reality-panel.seen {
+            border-color: var(--electric-blue);
+        }
+
+        .reality-panel.unheard {
+            border-color: var(--neon-red);
+        }
+
+        .reality-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .reality-panel.seen .reality-label {
+            color: var(--electric-blue);
+        }
+
+        .reality-panel.unheard .reality-label {
+            color: var(--neon-red);
+        }
+
+        /* Music Section - The Prophetic Sound */
+        .music-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .track-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .track-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(255, 0, 60, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .track-card:hover::before {
+            opacity: 1;
+        }
+
+        .track-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-red);
+            box-shadow: 0 10px 40px rgba(255, 0, 60, 0.3);
+        }
+
+        .track-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .track-year {
+            font-family: 'Space Mono', monospace;
+            color: var(--electric-blue);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .track-desc {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Contact - The Cry for Recognition */
+        .contact-section {
+            text-align: center;
+            padding: 10rem 2rem;
+            background: radial-gradient(ellipse at center, rgba(139,0,0,0.3) 0%, var(--void) 70%);
+        }
+
+        .contact-cta {
+            font-size: clamp(1.5rem, 3vw, 3rem);
+            margin-bottom: 2rem;
+            font-weight: 800;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .social-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--neon-red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+            z-index: -1;
+        }
+
+        .social-link:hover::before {
+            transform: scaleX(1);
+        }
+
+        .social-link:hover {
+            color: var(--void);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.5);
+        }
+
+        /* Footer - The Eternal Witness */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(255, 0, 60, 0.2);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Data Corruption Effect */
+        .corrupt-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .corrupt-text::before {
+            content: attr(data-original);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: var(--neon-red);
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+            animation: corrupt-1 5s infinite;
+            opacity: 0;
+        }
+
+        .corrupt-text::after {
+            content: attr(data-corrupted);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: var(--electric-blue);
+            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+            animation: corrupt-2 7s infinite;
+            opacity: 0;
+        }
+
+        @keyframes corrupt-1 {
+            0%, 90%, 100% { opacity: 0; }
+            92%, 96% { opacity: 0.7; transform: translateX(-2px); }
+        }
+
+        @keyframes corrupt-2 {
+            0%, 90%, 100% { opacity: 0; }
+            94%, 98% { opacity: 0.7; transform: translateX(2px); }
+        }
+
+        /* Loading Screen - The Awakening */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--void);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 1s;
+        }
+
+        .loader-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            animation: loader-pulse 2s infinite;
+        }
+
+        @keyframes loader-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #cursor { display: none; }
+            body { cursor: auto; }
+            .section { padding: 5rem 1rem; }
+            .reality-panel { padding: 2rem 1.5rem; }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-text">INITIALIZING VISION...</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+
+    <!-- Fracture Lines -->
+    <div class="fracture" style="left: 20%; animation-delay: 0s;"></div>
+    <div class="fracture" style="left: 50%; animation-delay: 3s;"></div>
+    <div class="fracture" style="left: 80%; animation-delay: 6s;"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div id="canvas-container"></div>
+        
+        <div class="hero-content">
+            <h1 class="prophet-name glitch" data-text="BELENTANI">BELENTANI</h1>
+            <p class="cassandra-tagline">The Unheard Prophet</p>
+            
+            <div class="vision-text">
+                I see what others cannot. I speak what others won't. 
+                But my voice echoes in the void between vision and belief. 
+                This is not madness—this is prophecy. And prophecy, unacknowledged, 
+                becomes the wound that never heals.
+            </div>
+        </div>
+    </section>
+
+    <!-- Cassandra Section - Dual Reality -->
+    <section class="section cassandra-section">
+        <h2 class="section-title glitch" data-text="THE CASSANDRA PARADOX">THE CASSANDRA PARADOX</h2>
+        
+        <div class="dual-reality">
+            <div class="reality-panel seen">
+                <span class="reality-label">What They See</span>
+                <p class="reality-text">
+                    An artist. A musician. Another voice in the digital chorus. 
+                    Barcelona nights. São Paulo roots. R&B, pop, electronic—
+                    genres that fit neatly into playlists and algorithms.
+                </p>
+            </div>
+            
+            <div class="reality-panel unheard">
+                <span class="reality-label">What I See</span>
+                <p class="reality-text corrupt-text" 
+                   data-original="The fracture in reality. The code beneath the skin of the world. 
+                   The sacred geometry of betrayal. The artifact that opens consciousness, 
+                   not doors. The warrior and the angel singing through the same throat. 
+                   The truth that destroys those who speak it."
+                   data-corrupted="TH3 FR4CTUR3 1N R34L1TY. TH3 C0D3 B3N34TH. 
+                   S4CR3D G30M3TRY 0F B3TR4Y4L. TH3 W0UND TH4T N3V3R H34LS. 
+                   PR0PH3CY = D34TH. C4SS4NDR4 SYNDR0M3 4CT1V4T3D.">
+                    The fracture in reality. The code beneath the skin of the world. 
+                    The sacred geometry of betrayal. The artifact that opens consciousness, 
+                    not doors. The warrior and the angel singing through the same throat.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Music Section -->
+    <section class="section">
+        <h2 class="section-title glitch" data-text="PROPHETIC SOUNDS">PROPHETIC SOUNDS</h2>
+        
+        <div class="music-grid">
+            <div class="track-card">
+                <h3 class="track-title">Judas</h3>
+                <div class="track-year">2026 • Dark Pop</div>
+                <p class="track-desc">
+                    The betrayal algorithm. Not a song—a data extraction from a shattered 
+                    timeline. The kiss that opens the wound. The friend who became the 
+                    mirror. The price of truth in thirty silver coins.
+                </p>
+            </div>
+            
+            <div class="track-card">
+                <h3 class="track-title">Mon Amour</h3>
+                <div class="track-year">2025 • R&B/Soul</div>
+                <p class="track-desc">
+                    Love as survival mechanism. The vulnerability exposed. 
+                    Emotional melodies with infectious beats that leave a lasting 
+                    impression on the fractured soul.
+                </p>
+            </div>
+            
+            <div class="track-card">
+                <h3 class="track-title">Therapist</h3>
+                <div class="track-year">2024 • Experimental</div>
+                <p class="track-desc">
+                    Using the mind as a coping mechanism. The session that never ends. 
+                    Processing relationships through sound frequencies and harmonic 
+                    dissonance.
+                </p>
+            </div>
+            
+            <div class="track-card">
+                <h3 class="track-title">America Has A Problem</h3>
+                <div class="track-year">2023 • Pop</div>
+                <p class="track-desc">
+                    Social commentary through sonic fantasy. The problem is the silence. 
+                    The problem is being unheard. The problem is Cassandra.
+                </p>
+            </div>
+            
+            <div class="track-card">
+                <h3 class="track-title">Lento</h3>
+                <div class="track-year">2022 • w/ Hey Duck</div>
+                <p class="track-desc">
+                    Collaboration with the sonic architect from Recife. 
+                    Fresh textures injected into the discography. The slow burn 
+                    of recognition.
+                </p>
+            </div>
+            
+            <div class="track-card">
+                <h3 class="track-title">I Wrote a Song</h3>
+                <div class="track-year">2023 • Personal</div>
+                <p class="track-desc">
+                    Transforming deeper relationships into art. The vulnerability 
+                    expressed. The mechanism of survival through melody and lyric.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <h2 class="contact-cta glitch" data-text="DO YOU HEAR ME NOW?">DO YOU HEAR ME NOW?</h2>
+        <p style="font-size: 1.2rem; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto;">
+            The vision is real. The pain is real. The music is the only bridge 
+            between what I see and what you can believe.
+        </p>
+        
+        <div class="social-links">
+            <a href="https://open.spotify.com/artist/2bU5Ir70YHHuUnq2f3WCYl" target="_blank" class="social-link">
+                Spotify
+            </a>
+            <a href="https://music.youtube.com/channel/UCQt7YkD-C1CNU17ZQj9pZpA" target="_blank" class="social-link">
+                YouTube
+            </a>
+            <a href="https://www.instagram.com/belentani_/" target="_blank" class="social-link">
+                Instagram
+            </a>
+            <a href="https://soundcloud.com/belentani" target="_blank" class="social-link">
+                SoundCloud
+            </a>
+            <a href="https://music.apple.com/us/artist/belentani/1522171354" target="_blank" class="social-link">
+                Apple Music
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 Belentani. All rights reserved.</p>
+        <p style="margin-top: 1rem; font-size: 0.75rem;">
+            Pedro Marcos Santos Belentani • São Paulo → Barcelona<br>
+            <span style="color: var(--neon-red);">"The truth that destroys those who speak it"</span>
+        </p>
+    </footer>
+
+    <script>
+        // Remove loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 1000);
+            }, 2000);
+        });
+
+        // Custom Cursor
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 20 + 'px';
+            cursor.style.top = e.clientY - 20 + 'px';
+        });
+
+        document.addEventListener('mousedown', () => {
+            cursor.style.transform = 'scale(0.8)';
+        });
+
+        document.addEventListener('mouseup', () => {
+            cursor.style.transform = 'scale(1)';
+        });
+
+        // Three.js 3D Background - Fragmented Reality
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Create fragmented geometry (representing Cassandra's fractured vision)
+        const geometry = new THREE.IcosahedronGeometry(2, 1);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xFF003C, 
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        // Add particles (the unheard voices)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: 0x00F0FF,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 5;
+
+        // Animation
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            sphere.rotation.x += 0.001;
+            sphere.rotation.y += 0.001;
+            
+            particlesMesh.rotation.y = -mouseX * 0.5;
+            particlesMesh.rotation.x = -mouseY * 0.5;
+
+            // Glitch effect on sphere
+            if (Math.random() > 0.98) {
+                sphere.scale.setScalar(1 + Math.random() * 0.3);
+                setTimeout(() => {
+                    sphere.scale.setScalar(1);
+                }, 100);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // GSAP Scroll Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate reality panels
+        gsap.from('.reality-panel', {
+            scrollTrigger: {
+                trigger: '.cassandra-section',
+                start: 'top center',
+            },
+            y: 100,
+            opacity: 0,
+            duration: 1.5,
+            stagger: 0.3,
+            ease: 'power4.out'
+        });
+
+        // Animate track cards
+        gsap.from('.track-card', {
+            scrollTrigger: {
+                trigger: '.music-grid',
+                start: 'top center',
+            },
+            y: 50,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.1,
+            ease: 'power3.out'
+        });
+
+        // Random glitch triggers
+        setInterval(() => {
+            const glitchElements = document.querySelectorAll('.glitch');
+            const randomElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
+            randomElement.style.animation = 'none';
+            setTimeout(() => {
+                randomElement.style.animation = '';
+            }, 100);
+        }, 8000);
+
+        // Console message - The Hidden Truth
+        console.log('%c⚠️ CASSANDRA PROTOCOL ACTIVATED', 'color: #FF003C; font-size: 20px; font-weight: bold;');
+        console.log('%cYou are seeing what others cannot. The vision is real. The pain is real.', 'color: #00F0FF; font-size: 12px;');
+        console.log('%cBelentani - The Unheard Prophet', 'color: #FFD700; font-size: 14px;');
+        console.log('%cPedro Marcos Santos Belentani | São Paulo → Barcelona', 'color: #888; font-size: 10px;');
+    </script>
+</body>
+</html>
